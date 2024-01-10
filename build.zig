@@ -31,7 +31,7 @@ pub fn build(b: *std.Build) void {
     }
 }
 
-fn build_examples_12(b: *Build, optimize: OptimizeMode, target: Build.ResolvedTarget, webui_lib: *Compile) void {
+fn build_examples_12(b: *Build, optimize: OptimizeMode, target: CrossTarget, webui_lib: *Compile) void {
     var lazy_path = Build.LazyPath{
         .path = "examples/C",
     };
@@ -210,11 +210,11 @@ fn build_examples_11(b: *Build, optimize: OptimizeMode, target: CrossTarget, web
     }
 }
 
-fn build_webui_12(b: *Build, optimize: OptimizeMode, target: Build.ResolvedTarget, is_static: bool, enable_tls: bool) *Compile {
+fn build_webui_12(b: *Build, optimize: OptimizeMode, target: CrossTarget, is_static: bool, enable_tls: bool) *Compile {
     const name = "webui";
     const webui = if (is_static) b.addStaticLibrary(.{ .name = name, .target = target, .optimize = optimize }) else b.addSharedLibrary(.{ .name = name, .target = target, .optimize = optimize });
 
-    const extra_flags = if (target.query.os_tag == .windows or (target.query.os_tag == null and builtin.os.tag == .windows))
+    const extra_flags = if (target.os_tag == .windows or (target.os_tag == null and builtin.os.tag == .windows))
         "-DMUST_IMPLEMENT_CLOCK_GETTIME"
     else
         "";
@@ -241,7 +241,7 @@ fn build_webui_12(b: *Build, optimize: OptimizeMode, target: Build.ResolvedTarge
 
     webui.addIncludePath(.{ .path = "include" });
 
-    if (target.query.os_tag == .windows or (target.query.os_tag == null and builtin.os.tag == .windows)) {
+    if (target.os_tag == .windows or (target.os_tag == null and builtin.os.tag == .windows)) {
         webui.linkSystemLibrary("ws2_32");
         if (enable_tls) {
             webui.linkSystemLibrary("bcrypt");
@@ -331,7 +331,7 @@ fn build_12(b: *Build) void {
 
     if (enableTLS) {
         std.log.info("enable TLS support", .{});
-        if (!target.query.isNative()) {
+        if (!target.isNative()) {
             std.log.info("when enable tls, not support cross compile", .{});
             std.os.exit(1);
         }
